@@ -364,12 +364,22 @@ def run(text: str):
     return _pipeline(engine, atoms, commitments)
 
 
-def demo():
-    """Reproducible path: pre-baked Mayor N atoms (reviewer runs this)."""
+def _demo_from(atoms_file: str):
+    """Run the pipeline on a pre-baked atom file (reproducible, engine-backed)."""
     engine = MirrorEngine()
-    atoms = load_atoms_metta(os.path.join(DATA, "mayor_atoms.metta"))
+    atoms = load_atoms_metta(os.path.join(DATA, atoms_file))
     commitments = load_commitments(os.path.join(DATA, "commitments.metta"))
     return _pipeline(engine, atoms, commitments)
+
+
+def demo():
+    """Reproducible path: pre-baked Mayor N atoms (reviewer runs this)."""
+    return _demo_from("mayor_atoms.metta")
+
+
+def demo_raskolnikov():
+    """Reproducible path: pre-baked Raskolnikov atoms (benchmark character)."""
+    return _demo_from("raskolnikov_atoms.metta")
 
 
 if __name__ == "__main__":

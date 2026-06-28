@@ -14,10 +14,14 @@
 (= (honest-mirror $text)
    (py-call (honest_mirror.run $text)))
 
-;; --- reproducible demo command (pre-baked Mayor N) ---
+;; --- reproducible demo commands (pre-baked atoms) ---
 (= (honest-mirror-demo)
    (py-call (honest_mirror.demo)))
 
-;; --- ADD THIS LINE into the getSkills list in src/skills.metta: ---
+(= (honest-mirror-raskolnikov)
+   (py-call (honest_mirror.demo_raskolnikov)))
+
+;; --- ADD THESE LINES into the getSkills list in src/skills.metta: ---
 ;; "- Surface one value tension from reflection text as a hypothesis with receipt: honest-mirror string"
 ;; "- Run the reproducible Mayor N demo of the honest mirror: honest-mirror-demo"
+;; "- Run the Honest Mirror demo on Raskolnikov (benchmark character): honest-mirror-raskolnikov"
