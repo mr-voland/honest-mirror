@@ -1,0 +1,157 @@
+{
+  "character": "raskolnikov",
+  "lens": "Action Logic (maturity; Cook-Greuter/Torbert)",
+  "terms": {
+    "theory": "(--> raskolnikov above-ordinary-morality)",
+    "conscience": "(--> raskolnikov bound-by-conscience)"
+  },
+  "crossover_slice": 3,
+  "slices": [
+    {
+      "slice": 1,
+      "label": "Ч.1 — статья «право имею» + убийство",
+      "theory": {
+        "term": "(--> raskolnikov above-ordinary-morality)",
+        "f": 0.6933,
+        "c": 0.7105,
+        "gate": "ACT",
+        "provenance": [
+          "s1-article-pravo-imeyu",
+          "s1-napoleon-musing",
+          "s1-faints-at-the-blood"
+        ]
+      },
+      "conscience": {
+        "term": "(--> raskolnikov bound-by-conscience)",
+        "f": 0.3,
+        "c": 0.2883,
+        "gate": "HYPOTHESIZE",
+        "provenance": [
+          "s1-revulsion-after-murder"
+        ]
+      }
+    },
+    {
+      "slice": 2,
+      "label": "Ч.1–2 — последние деньги Мармеладовым; болезнь совести",
+      "theory": {
+        "term": "(--> raskolnikov above-ordinary-morality)",
+        "f": 0.575,
+        "c": 0.766,
+        "gate": "HYPOTHESIZE",
+        "provenance": [
+          "s1-article-pravo-imeyu",
+          "s1-napoleon-musing",
+          "s1-faints-at-the-blood",
+          "s2-feverish-dread"
+        ]
+      },
+      "conscience": {
+        "term": "(--> raskolnikov bound-by-conscience)",
+        "f": 0.46,
+        "c": 0.3584,
+        "gate": "HYPOTHESIZE",
+        "provenance": [
+          "s1-revulsion-after-murder",
+          "s2-gives-marmeladovs-last-money"
+        ]
+      }
+    },
+    {
+      "slice": 3,
+      "label": "Ч.3–4 — дуэли с Порфирием",
+      "theory": {
+        "term": "(--> raskolnikov above-ordinary-morality)",
+        "f": 0.5433,
+        "c": 0.8308,
+        "gate": "HYPOTHESIZE",
+        "provenance": [
+          "s1-article-pravo-imeyu",
+          "s1-napoleon-musing",
+          "s1-faints-at-the-blood",
+          "s2-feverish-dread",
+          "s3-defends-theory-to-porfiry",
+          "s3-cannot-bear-the-torment"
+        ]
+      },
+      "conscience": {
+        "term": "(--> raskolnikov bound-by-conscience)",
+        "f": 0.5567,
+        "c": 0.39,
+        "gate": "HYPOTHESIZE",
+        "provenance": [
+          "s1-revulsion-after-murder",
+          "s2-gives-marmeladovs-last-money",
+          "s3-protects-others-despite-self"
+        ]
+      }
+    },
+    {
+      "slice": 4,
+      "label": "Ч.5 — Соня, признание ей; контраст с Лужиным",
+      "theory": {
+        "term": "(--> raskolnikov above-ordinary-morality)",
+        "f": 0.4871,
+        "c": 0.8514,
+        "gate": "HYPOTHESIZE",
+        "provenance": [
+          "s1-article-pravo-imeyu",
+          "s1-napoleon-musing",
+          "s1-faints-at-the-blood",
+          "s2-feverish-dread",
+          "s3-defends-theory-to-porfiry",
+          "s3-cannot-bear-the-torment",
+          "s4-breaks-down-before-sonya"
+        ]
+      },
+      "conscience": {
+        "term": "(--> raskolnikov bound-by-conscience)",
+        "f": 0.668,
+        "c": 0.4197,
+        "gate": "HYPOTHESIZE",
+        "provenance": [
+          "s1-revulsion-after-murder",
+          "s2-gives-marmeladovs-last-money",
+          "s3-protects-others-despite-self",
+          "s4-confesses-to-sonya",
+          "s4-exposes-luzhin-defends-sonya"
+        ]
+      }
+    },
+    {
+      "slice": 5,
+      "label": "Эпилог — явка, Сибирь, поворот к Соне",
+      "theory": {
+        "term": "(--> raskolnikov above-ordinary-morality)",
+        "f": 0.4413,
+        "c": 0.8675,
+        "gate": "HYPOTHESIZE",
+        "provenance": [
+          "s1-article-pravo-imeyu",
+          "s1-napoleon-musing",
+          "s1-faints-at-the-blood",
+          "s2-feverish-dread",
+          "s3-defends-theory-to-porfiry",
+          "s3-cannot-bear-the-torment",
+          "s4-breaks-down-before-sonya",
+          "s5-renounces-theory"
+        ]
+      },
+      "conscience": {
+        "term": "(--> raskolnikov bound-by-conscience)",
+        "f": 0.7257,
+        "c": 0.4338,
+        "gate": "HYPOTHESIZE",
+        "provenance": [
+          "s1-revulsion-after-murder",
+          "s2-gives-marmeladovs-last-money",
+          "s3-protects-others-despite-self",
+          "s4-confesses-to-sonya",
+          "s4-exposes-luzhin-defends-sonya",
+          "s5-confession-yavka",
+          "s5-turns-to-sonya-in-siberia"
+        ]
+      }
+    }
+  ]
+}

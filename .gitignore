@@ -30,7 +30,12 @@ __pycache__/
 /docs/ARCHITECTURE.md
 /docs/jiva-prompt.txt
 /docs/jiva-memory-seeds.md
+/docs/jiva-*
 /tasks/
 /book/
 /data/mayor_source.md
 /docs/video-script.md
+
+# Honest Mirror run artifacts ("срезы") — runtime, not for the repo
+analyses/
+/docs/kill-task.md

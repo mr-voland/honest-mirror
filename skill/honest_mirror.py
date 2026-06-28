@@ -26,8 +26,10 @@ VERIFY-in-WSL markers flag the spots that need a live MeTTa REPL to confirm
 
 import os
 import re
+import json
 import subprocess
 import tempfile
+import datetime as _dt
 
 # --- paths (verified against the live OmegaClaw container, 2026-06-28) --------
 # The engine is PeTTa (MeTTa-on-SWI-Prolog), NOT hyperon. Reasoning runs by
@@ -54,6 +56,21 @@ def _find(name, roots):
 LIB_NAL = _find("lib_nal.metta", [OMEGACLAW_ROOT, PETTA_ROOT])
 MAIN_PL = _find(os.path.join("src", "main.pl"), [PETTA_ROOT, OMEGACLAW_ROOT])
 DATA = os.path.join(ROOT, "data")
+# Axis-B artifact root: full receipts are persisted as dated, numbered "срезы".
+# We pick the FIRST writable candidate at write time (the bind-mounted skill dir
+# is read-only for the loop user `nobody`, so the container falls through to the
+# persistent memory volume; a local checkout lands next to the skill, host-visible):
+#   1) $HONEST_MIRROR_ANALYSES (explicit override)
+#   2) <ROOT>/analyses               — local dev checkout (Windows-visible)
+#   3) <OmegaClaw>/memory/analyses   — container persistent volume (survives rm)
+#   4) /tmp/honest-mirror-analyses   — last-resort (ephemeral)
+_ANALYSES_CANDIDATES = [
+    os.environ.get("HONEST_MIRROR_ANALYSES"),
+    os.path.join(ROOT, "analyses"),
+    os.path.join(OMEGACLAW_ROOT, "repos", "OmegaClaw-Core", "memory", "analyses"),
+    os.path.join(OMEGACLAW_ROOT, "memory", "analyses"),
+    "/tmp/honest-mirror-analyses",
+]
 
 _ANSI = re.compile(r"\x1b\[[0-9;]*m")
 
@@ -344,16 +361,130 @@ def surface_message(s):
 
 
 # ===========================================================================
+# CHAT-SAFE OUTPUT (axis A) + DATED ARTIFACT (axis B)
+# ===========================================================================
+# WHY: OmegaClaw's command parser (helper.balance_parentheses) reads the agent's
+# reply line-by-line as commands. Our full receipt contains lines shaped like
+# MeTTa atoms — "(--> subj pred) (stv f c)" — which the parser tries to execute,
+# raising SINGLE_COMMAND_FORMAT_ERROR and DROPPING the whole reply (the operator
+# sees silence). So chat gets a SINGLE parser-safe line (no parens, no -->, no
+# raw newlines, no ASCII quotes — guillemets «» are safe), and the full
+# multi-line receipt is persisted to a dated, numbered folder.
+def _humanize(pred: str) -> str:
+    return pred.replace("-", " ")
+
+
+def chat_line(s) -> str:
+    """One-line, parser-safe summary suitable to relay verbatim into chat."""
+    t = s["tension"]
+    f, c = t["tv"]
+    subj = t["term"].split()[1]
+    pred = t["term"].split()[-1].rstrip(")")
+    parts = [f"🪞 {subj}: stated value vs actions diverge on «{_humanize(pred)}» "
+             f"— f={f:.2f}, c={c:.2f} → {t['token']}"]
+    hyp = s.get("abduction")
+    if hyp:
+        hf, hc = hyp["hyp"]
+        parts.append(f"hidden commitment «{_humanize(hyp['commitment'])}» "
+                     f"f={hf:.2f}, c={hc:.2f} → {gate(hyp['hyp'])} "
+                     f"— abduction capped ~0.45, so hypothesis not verdict")
+    return "; ".join(parts) + "."
+
+
+def _analyses_base() -> str:
+    """First writable candidate from _ANALYSES_CANDIDATES, or '' if none."""
+    for base in _ANALYSES_CANDIDATES:
+        if not base:
+            continue
+        try:
+            os.makedirs(base, exist_ok=True)
+            probe = os.path.join(base, ".wtest")
+            with open(probe, "w") as fh:
+                fh.write("")
+            os.unlink(probe)
+            return base
+        except Exception:
+            continue
+    return ""
+
+
+def _next_index(day_dir: str) -> int:
+    n = 0
+    if os.path.isdir(day_dir):
+        for name in os.listdir(day_dir):
+            head = name.split("-", 1)[0]
+            if head.isdigit():
+                n = max(n, int(head))
+    return n + 1
+
+
+def write_analysis(s, full_text: str, slug: str) -> str:
+    """Persist the full receipt as a dated, numbered 'срез'. Returns the path
+    shown to the user (relative, from 'analyses/...'), or '' on failure."""
+    try:
+        base = _analyses_base()
+        if not base:
+            return ""
+        day = _dt.datetime.now().strftime("%Y-%m-%d")
+        day_dir = os.path.join(base, day)
+        idx = _next_index(day_dir)
+        run_dir = os.path.join(day_dir, f"{idx:03d}-{slug}")
+        os.makedirs(run_dir, exist_ok=True)
+        t = s["tension"]
+        f, c = t["tv"]
+        hyp = s.get("abduction")
+        meta = {
+            "date": day, "n": idx, "slug": slug,
+            "subject": t["term"].split()[1],
+            "tension_term": t["term"],
+            "contested": {"f": round(f, 4), "c": round(c, 4), "token": t["token"]},
+            "support": [src for _, src in t["prov"] if src],
+        }
+        if hyp:
+            hf, hc = hyp["hyp"]
+            meta["abduction"] = {
+                "commitment": hyp["commitment"], "behaviour": hyp["behaviour"],
+                "f": round(hf, 4), "c": round(hc, 4), "gate": gate(hyp["hyp"]),
+            }
+        header = f"# Honest Mirror — {slug} — {day} #{idx:03d}\n\n"
+        with open(os.path.join(run_dir, "receipt.md"), "w", encoding="utf-8") as fh:
+            fh.write(header + full_text + "\n")
+        with open(os.path.join(run_dir, "meta.json"), "w", encoding="utf-8") as fh:
+            json.dump(meta, fh, ensure_ascii=False, indent=2)
+        return os.path.join("analyses", day, f"{idx:03d}-{slug}")
+    except Exception as e:
+        print(f"[honest_mirror] write_analysis failed: {e}")
+        return ""
+
+
+# ===========================================================================
 # ENTRY POINTS
 # ===========================================================================
-def _pipeline(engine, atoms, commitments):
-    revise_axis(engine, atoms)                    # REVISE (per-term accumulation)
-    tensions = collide(engine, atoms, None)       # COLLIDE (axis B) -> CONTESTED
-    abductions = abduce_commitment(engine, atoms, commitments)  # ABDUCE -> hidden commitment
-    s = surface(tensions, abductions)             # SURFACE (pick sharpest)
+def _analyze(engine, atoms, commitments):
+    """REVISE -> COLLIDE(axisB) -> ABDUCE -> SURFACE. Returns the surfaced dict or None."""
+    revise_axis(engine, atoms)
+    tensions = collide(engine, atoms, None)
+    abductions = abduce_commitment(engine, atoms, commitments)
+    return surface(tensions, abductions)
+
+
+def _full_text(s) -> str:
     if not s:
         return "IGNORE — nothing crossed threshold yet."
     return surface_message(s) + "\n\n" + receipt(s)
+
+
+def _report(engine, atoms, commitments, slug: str) -> str:
+    """Run analysis; persist the full receipt (axis B); return a parser-safe
+    chat line + pointer (axis A) so the reply ALWAYS reaches the operator."""
+    s = _analyze(engine, atoms, commitments)
+    if not s:
+        return ("🪞 Nothing crossed the threshold yet — this reflection is "
+                "internally consistent so far. Keep feeding me and I'll watch.")
+    full = _full_text(s)
+    path = write_analysis(s, full, slug)
+    line = chat_line(s)
+    return line + (f"  Full receipt → {path}" if path else "")
 
 
 def run(text: str):
@@ -361,26 +492,63 @@ def run(text: str):
     engine = MirrorEngine()
     atoms = extract(text)
     commitments = load_commitments(os.path.join(DATA, "commitments.metta"))
-    return _pipeline(engine, atoms, commitments)
+    return _report(engine, atoms, commitments, "reflection")
 
 
-def _demo_from(atoms_file: str):
+def _demo_from(atoms_file: str, slug: str):
     """Run the pipeline on a pre-baked atom file (reproducible, engine-backed)."""
     engine = MirrorEngine()
     atoms = load_atoms_metta(os.path.join(DATA, atoms_file))
     commitments = load_commitments(os.path.join(DATA, "commitments.metta"))
-    return _pipeline(engine, atoms, commitments)
+    return _report(engine, atoms, commitments, slug)
 
 
 def demo():
     """Reproducible path: pre-baked Mayor N atoms (reviewer runs this)."""
-    return _demo_from("mayor_atoms.metta")
+    return _demo_from("mayor_atoms.metta", "mayor")
 
 
 def demo_raskolnikov():
     """Reproducible path: pre-baked Raskolnikov atoms (benchmark character)."""
-    return _demo_from("raskolnikov_atoms.metta")
+    return _demo_from("raskolnikov_atoms.metta", "raskolnikov")
+
+
+def demo_trajectory():
+    """Kill-feature: Raskolnikov maturity TRAJECTORY across 5 slices, on the engine.
+    Returns a parser-safe one-line summary + artifact paths (axis A)."""
+    import sys as _sys
+    _sys.path.insert(0, os.path.join(ROOT, "bench"))
+    import trajectory as _traj  # noqa: E402
+    data = _traj.build_trajectory(write=True)
+    sl = data["slices"]
+    th0, th1 = sl[0]["theory"]["f"], sl[-1]["theory"]["f"]
+    co0, co1 = sl[0]["conscience"]["f"], sl[-1]["conscience"]["f"]
+    cross = data.get("crossover_slice")
+    json_path = data.get("_json_path", "")
+    png = ""
+    try:
+        _sys.path.insert(0, os.path.join(ROOT, "viz"))
+        import plot_trajectory as _plt  # noqa: E402
+        png = _plt.plot(json_path, None) if json_path else ""
+    except Exception as e:
+        print(f"[honest_mirror] trajectory plot skipped: {e}")
+    msg = (f"🪞 Raskolnikov maturity over 5 slices — theory «above ordinary morality» "
+           f"falls f {th0:.2f}→{th1:.2f}, conscience «bound by conscience» rises "
+           f"f {co0:.2f}→{co1:.2f}; conscience overtakes theory at slice {cross}.")
+    if json_path:
+        msg += f"  Data → {json_path}"
+    if png:
+        msg += f"  Chart → {png}"
+    return msg
 
 
 if __name__ == "__main__":
-    print(demo())
+    # Terminal run shows the FULL receipt (no parser between us and stdout) plus
+    # the one-line chat payload the skill actually returns.
+    _eng = MirrorEngine()
+    _ats = load_atoms_metta(os.path.join(DATA, "mayor_atoms.metta"))
+    _cms = load_commitments(os.path.join(DATA, "commitments.metta"))
+    _s = _analyze(_eng, _ats, _cms)
+    print(_full_text(_s))
+    print("\n--- chat payload (what the skill returns) ---")
+    print(chat_line(_s) if _s else "(nothing crossed threshold)")

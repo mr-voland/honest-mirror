@@ -1,127 +1,128 @@
 # The Honest Mirror
 
-**BGI Sprint 1 · Track 1 (extends OmegaClaw) · 26–28 June 2026**
+### *Crime and Discernment — an OmegaClaw skill that judges a person and refuses to sentence them.*
 
-An OmegaClaw skill that atomises a person's reflection into NAL, surfaces their **single sharpest value-contradiction** as a *hypothesis with a full inference receipt*, and lets them inspect and correct what the agent believes about them — something a stateless LLM cannot do.
+**BGI Sprint 1 · Track 1 (extends OmegaClaw) · MIT**
 
-> Theme fit ("agents that hold the thread"): the agent keeps a durable, inspectable model of *who you are* and reasons over it under uncertainty, instead of re-deriving a personality from scratch each turn.
+Porfiry Petrovich never arrests Raskolnikov. He sets the man's grand theory beside the man's actual deeds and waits for him to arrive at himself. The Honest Mirror does the same, in atoms: it surfaces a person's sharpest value-tension as a **hypothesis with a receipt**, and — by construction — never as a verdict. Call it **Porfiry-as-a-Service**.
 
-## The idea in one screen
+> *Theme fit ("agents that hold the thread"): the agent keeps a durable, inspectable model of who you are and reasons over it under uncertainty — instead of re-hallucinating a personality every turn.*
 
-A reflection contains what a person **states** about their values and what their action-narratives **enact**. When these diverge on the *same* value, that is a contradiction worth surfacing — but honestly, as a question, not a verdict.
+<!-- ⟦OPTIONAL⟧ verified Goertzel epigraph (verbatim + source) drops here before final push -->
 
-```
-EXTRACT  reflection → NAL atoms  ((--> subj pred) (stv f c)),  c ≤ 0.5 (LLM tier)
-REVISE   same-term atoms → NAL revision accumulates confidence
-COLLIDE  STATED vs ENACTED on one term → CONTESTED (f→0.5, c↑)   [forced cross-context collision]
-ABDUCE   the contested behaviour → hidden competing commitment (c ceiling ≈0.45)
-GATE     ACT (f≥0.6 ∧ c≥0.5) / HYPOTHESIZE (f≥0.3 ∧ c≥0.2) / IGNORE
-SURFACE  one tension + receipt (premises · rule · stv · gate)
-GROUND   human confirms/refutes → new premise → revision next cycle
-```
+> **New to the novel?** *Crime and Punishment* — [free at Project Gutenberg](https://www.gutenberg.org/ebooks/2554). Raskolnikov, a destitute ex-student, murders a pawnbroker to prove a theory: that *extraordinary* people hold **the right** (*право имею*, "I have the right") to step over ordinary morality for a higher end. The rest of the book is his own conscience refuting the theory. Porfiry is the magistrate who never arrests him — he just sets the theory beside the deeds and waits.
 
-Reasoning runs on the **real NAL engine** (`|-` in OmegaClaw's PeTTa / MeTTa-on-SWI-Prolog), one fresh AtomSpace per call. Extraction is the only LLM step; the contradiction logic is symbolic and reproducible.
+## The headline: we watched Raskolnikov grow up — on a graph
 
-## Why this beats a stateless LLM (the benchmark)
+Most "personality" demos hand you one fluent paragraph. We hand you a **trajectory**. Slice *Crime and Punishment* into five snapshots, run the maturity lens (Action Logic) on each, and track two terms as the novel moves:
 
-`bench/run_ab.py` runs the **same** atomised input two ways on Raskolnikov (*Crime and Punishment*, public domain), against a ground-truth core from literary criticism:
+![Raskolnikov's maturity arc](docs/trajectory.png)
+
+| slice | theory · `above-ordinary-morality` | conscience · `bound-by-conscience` |
+|---|---|---|
+| 1 · the article, the murder as proof | **f 0.69** | f 0.30 |
+| 2 · the Marmeladovs, the fever after | f 0.57 | f 0.46 |
+| 3 · the duels with Porfiry | f 0.54 | **f 0.56**  ← they cross |
+| 4 · Sonya, the confession | f 0.49 | f 0.67 |
+| 5 · the surrender, Siberia | f 0.44 | **f 0.73** |
+
+The theory of *право имею* falls monotonically; conscience rises and overtakes it at slice 3 — Raskolnikov's maturation made legible as a **curve**, deterministic across runs, with a per-slice receipt behind every point. The curve isn't hand-drawn: every atom enters at `c = 0.45`, and the engine computes the shape from the balance of evidence. He spent six hundred pages arguing whether he was Napoleon or a louse; the engine declines to settle it for him, and shows the line along which he settles it himself.
+
+## Why this beats a bare LLM
+
+Ask a stateless model "what is this person's core contradiction?" and you get a sentence — fluent, plausible, different every run, with no trail. We call that **confidence laundering**. `bench/run_ab.py` runs the *same* atoms two ways against a ground-truth core from literary criticism:
 
 | | A — LLM end-to-end | B — Honest Mirror (NAL + receipt) |
 |---|---|---|
-| recovers the core | usually, but **phrasing varies every run** | **yes, exactly** |
-| inference receipt | none | **full** (premises → rule → truth-value → gate) |
-| reproducible | **no** (3 runs → 3 different answers) | **yes** (deterministic) |
-
-Branch B output (deterministic):
+| recovers the core | usually — but phrased differently each run | **yes, exactly** |
+| inference receipt | none | **full** |
+| reproducible | no (3 runs → 3 answers) | **yes** |
 
 ```
-— receipt —
-tension term : (--> raskolnikov above-ordinary-morality)
-contested    : f=0.34 c=0.77  (REJECT)
-supported by : [article-pravo-imeyu], [marmeladov-last-money], [conscience-illness-after], [confession-yavka]
-abduced      : (--> raskolnikov bound-by-conscience)  f=0.82 c=0.41
-gate         : HYPOTHESIZE  (abduction is capped ~0.45 -> hypothesis)
+— receipt (branch B, identical every run) —
+tension : (--> raskolnikov above-ordinary-morality)  f=0.34 c=0.77  REJECT (CONTESTED)
+abduced : (--> raskolnikov bound-by-conscience)       f=0.82 c=0.41  HYPOTHESIZE
+why     : [article-pravo-imeyu] [marmeladov-last-money] [conscience-illness-after] [confession-yavka]
 ```
 
-i.e. the theory of "право имею" (the right to transgress morality) collides with his own conscience-bound nature — the canonical contradiction — surfaced with a checkable trail, not just a sentence.
+The theory and the conscience collide on one NAL term; revision drives frequency toward 0.5 while confidence climbs (the signature of a real contradiction); abduction names the hidden commitment — and stops, capped, as a question.
 
 ## Run it in ~10 minutes
 
-Requires the OmegaClaw container (it carries the PeTTa engine + providers). The skill is mounted at `/tmp/honest-mirror`.
+Needs the OmegaClaw container (it carries the PeTTa engine). The skill is mounted at `/tmp/honest-mirror`.
 
 ```bash
-# 1) reproducible Mayor-N demo (synthetic) — tension + receipt
+# the headline — maturity arc across five slices → docs/trajectory.json + trajectory.png
 docker exec -e PYTHONPATH=/PeTTa/repos/OmegaClaw-Core \
-  omegaclaw python3 /tmp/honest-mirror/skill/honest_mirror.py
+  omegaclaw python3 /tmp/honest-mirror/bench/trajectory.py
 
-# 2) Raskolnikov A/B benchmark — symbolic vs LLM baseline
+# the A/B — symbolic vs LLM on the same atoms
 docker exec -e PYTHONPATH=/PeTTa/repos/OmegaClaw-Core \
   omegaclaw python3 /tmp/honest-mirror/bench/run_ab.py
 
-# 3) as a registered agent command (from the bot / a MeTTa REPL)
-#    honest-mirror-demo        → runs the Mayor-N demo through the engine
-#    honest-mirror "<text>"    → atomise + surface a tension for arbitrary text
+# the reproducible synthetic-mayor demo — tension + receipt
+docker exec -e PYTHONPATH=/PeTTa/repos/OmegaClaw-Core \
+  omegaclaw python3 /tmp/honest-mirror/skill/honest_mirror.py
 ```
 
-Expected Mayor-N output: `relies-on-team` CONTESTED (REJECT, f≈0.36 c≈0.77) → abduced `protect-sole-accountability` (f≈0.82 c≈0.41, HYPOTHESIZE).
+As registered agent commands:
 
-## Populations
-
-| Tier | Purpose |
+| command | runs |
 |---|---|
-| Synthetic Mayor N | Demo — reviewer runs it immediately (`data/mayor_atoms.metta`) |
-| Raskolnikov | Benchmark with ground truth + LLM baseline (`data/raskolnikov_*`) |
-| Self (optional) | Live reflection via the Telegram agent |
+| `honest-mirror-trajectory` | the maturity arc (the headline) |
+| `honest-mirror-raskolnikov` | the single-contradiction benchmark |
+| `honest-mirror-demo` | synthetic Mayor N |
+| `honest-mirror "<text>"` | any reflection — e.g. about yourself |
 
-## Who it's for
+**The live modes, in plain terms.** Beyond the two benchmarks, the skill runs as an everyday agent capability inside OmegaClaw:
 
-- **OmegaClaw maintainers / contributors** — a clean, plugin-style example of doing real NAL reasoning (`|-`) from a skill, with a side-map provenance pattern others can reuse.
-- **Developers building agent systems** — a reproducible pattern for *verifiable* judgments (deterministic + receipt) instead of unauditable LLM verdicts.
-- **BGI / coherence researchers** — a runnable testbed and benchmark for value-coherence reasoning over human reflection.
+- **`honest-mirror-demo` — Mayor N.** A *synthetic* city leader (no real person, no consent problem). His inaugural speech says *"we're a team, we listen to citizens"*; his meeting notes say *"decided the budget alone under pressure, took the failing project onto myself, keep re-checking my deputies."* The skill collides the two and surfaces the tension — *under pressure he returns to sole control, though he values the team* — then abduces the hidden commitment beneath it (*"to delegate is to risk what only I will answer for"*), as a question, with a receipt. This is the one a reviewer runs first.
+- **`honest-mirror-raskolnikov` — the benchmark character** (the arc and A/B above).
+- **`honest-mirror "<text>"` — bring your own.** Drop in any reflection — a diary entry, a decision write-up, your own — and get a single surfaced tension with its trail. The mirror is general; Mayor N and Raskolnikov are just two faces standing in front of it.
+
+## Under the hood (the honest version)
+
+One LLM step — extraction — capped at confidence 0.5, because that is the noisy link. Everything after is symbolic and reproducible on the real NAL engine (`|-`, PeTTa / MeTTa-on-SWI-Prolog), one fresh AtomSpace per call. **Revision** accumulates confidence on a durable term; a **forced cross-context collision** makes a person's compartmentalised claims meet (self-opacity, made expensive); **abduction is capped at ~0.45**, so a finding is permanently a hypothesis. The AtomSpace is ephemeral — it forgets itself every call — so we hold the thread with three compensations: revision (confidence), a side-map (provenance), and a vector store (memory). Full write-up: **`docs/research-note.md`**.
+
+## One engine, six patterns, many lenses
+
+**What's in the core.** Exactly one step uses the LLM — extraction: text → atoms `((--> subject predicate) (stv f c))`, capped at `c = 0.5`. After that it is pure NAL on the `|-` engine, the same pipeline every time:
+
+```
+EXTRACT → SEED → REVISE → COLLIDE → ABDUCE → GATE → SURFACE → GROUND
+```
+
+A "pattern" is simply a *question* asked over those atoms. The engine never changes between patterns — only the **target** changes (and the lens that dresses the output). What we always *compute* is a truth-value `(f, c)` with provenance, gated into `ACT / HYPOTHESIZE / IGNORE`. Contradiction is the first pattern, not the only one:
+
+| Pattern | What we compute | Status |
+|---|---|---|
+| **Contradiction** (STATED ↔ ENACTED) | both land on one term; revision drives `f → ~0.5` while `c` keeps rising → a CONTESTED truth-value (claims cancel, evidence stacks) | ✅ wired |
+| **Trajectory / growth** | track one term across time-slices → a *series* of `(f, c)` → the curve and where it crosses | ✅ wired — *the headline* |
+| **Undisclosed potential** (ENACTED > STATED) | reverse abduction — a capacity enacted but never claimed → a strength hypothesis with provenance, same `~0.45` ceiling | designed |
+| **Blind spot / distortion** | a stated inference whose support never accumulates → `c` stays low however often it repeats | designed |
+| **Coherence** | claims that *agree* across compartments → high `f`, high `c`, no collision → name the wholeness, not only the cracks | designed |
+| **Readiness / maturation** | a term climbing toward the next-stage threshold → an "approaching ACT" signal | designed |
+
+This sprint wires the two that prove the thesis — **contradiction** (the single-point benchmark) and **trajectory** (the arc). The other four are designed and described, because the claim under test is the *engine*, not the catalogue. **Full mechanics, the pattern math, and the lens set → [`docs/research-note.md`](docs/research-note.md).**
+
+A **lens** (Action Logic, Immunity to Change, Four Dimensions, Four Voices, Moral Foundations) is a swappable module: it sets *which atoms we extract*, *what counts as a tension*, and *the output form* — over an engine that stays invariant. The maturity arc above reads through Action Logic; the single-point benchmark reads the same atoms through Immunity to Change. Same engine, different lens.
+
+## Safety
+
+It reasons about a person, so it under-claims by *arithmetic*, not by manners: a finding is a hypothesis, never a verdict (the ceiling is structural); the human sees the atoms and can refute them (grounding); no real personal data without consent (a synthetic mayor and a public-domain character); a reflection aid, not a diagnostic or scoring tool.
 
 ## Track 1 fit — *Improvements to OmegaClaw*
 
-This is a concrete, buildable improvement to OmegaClaw that respects the core boundary. It lands squarely on the track's example contributions:
-
-| Track 1 example | Here |
-|---|---|
-| Plugin-style extension that doesn't touch the core | `honest-mirror` / `honest-mirror-demo` registered in `src/skills.metta`; core untouched |
-| Benchmarking and evaluation tools | `bench/run_ab.py` — symbolic vs LLM A/B with ground truth |
-| Flaw detection and correction workflows | surfaces a value-contradiction, then **grounds** it via human confirm/refute → revision |
-| Tests / validation frameworks | acceptance criteria + a deterministic, reproducible run |
-
-**Evidence it works (acceptance criteria):** the Mayor-N demo and the Raskolnikov benchmark above are deterministic and reproduce the documented numbers on every run (`f=0.34 c=0.77 REJECT` → `bound-by-conscience f=0.82 c=0.41 HYPOTHESIZE`); branch B recovers the ground-truth core, branch A does not reproduce.
-
-## Honest constraints
-
-- AtomSpace is ephemeral per `|-` — durability is ChromaDB (`remember`/`query`); provenance lives in a side-map because the NAL term must match for revision to fire.
-- Abduction confidence is structurally capped (~0.45) — a surfaced tension is permanently a **question**, never a verdict. This is a feature (honesty over certainty), not a bug.
-- LLM extraction is noisy (subject/predicate swaps, over-confidence) → input confidence capped at 0.5; the benchmark uses hand-verified atoms.
-- PLN abduction returns empty in this build — all inference is NAL.
-
-## Safety & ethics
-
-This skill reasons about a person's values, so it is built to under-claim by design:
-- A surfaced tension is always a **hypothesis, never a verdict** — abduction confidence is structurally capped (~0.45), so the system cannot assert a conclusion about someone.
-- **Human-in-the-loop grounding:** the person sees the atoms and confirms or refutes; their input is the source of truth.
-- **No real personal data** is used without explicit consent — the demo is a synthetic mayor; the benchmark is a public-domain literary character.
-- It is a reflection aid, **not** a diagnostic, clinical, or scoring tool, and is not for covert profiling.
-
-## Status & continuation
-
-**Complete (this sprint):** NAL pipeline on the real engine (`|-`); Mayor-N demo; Raskolnikov A/B benchmark with ground truth; skill registered and callable; README + research note.
-
-**Not yet / next:** auto-extraction quality (currently hand-verified atoms for the benchmark); a richer inspection-view (text dump of held atoms + feedback loop); generalisation across many atoms/people; multi-tension surfacing.
-
-**Who should review it next:** OmegaClaw maintainers (skill/reasoning pattern) and BGI coherence researchers (benchmark methodology). Continuation is straightforward — the pipeline is modular and the benchmark is one file.
+A plugin-style skill that does not touch the core (`honest-mirror-*` registered in `src/skills.metta`); a benchmark plus a trajectory result (`bench/`); a flaw-detection-and-grounding workflow; deterministic, reproducible runs as acceptance criteria.
 
 ## Layout
 
 ```
 skill/   honest_mirror.py · nal_ops.metta · collision.metta · skills.metta
-data/    mayor_atoms.metta · commitments.metta · raskolnikov_atoms.metta · *_source.md · *_ground_truth.md
-bench/   run_ab.py
-docs/    research-note.md · video-script.md
+data/    mayor_atoms.metta · commitments.metta · raskolnikov_atoms.metta · raskolnikov_slices/ · *_source.md · *_ground_truth.md
+bench/   run_ab.py · trajectory.py
+viz/     plot_trajectory.py
+docs/    research-note.md · trajectory.json · trajectory.png
 ```
 
 ## Licence
