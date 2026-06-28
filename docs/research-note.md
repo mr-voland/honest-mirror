@@ -4,8 +4,6 @@
 
 **BGI Sprint 1 · Track 1 (extends OmegaClaw) · 26–28 June 2026 · MIT**
 
-> **Reviewer markers in this draft:** `⟦PENDING ENGINE⟧` = trajectory figure + per-slice numbers, slotted in once `bench/trajectory.py` reports. `⟦VERIFY QUOTE⟧` = a verbatim Goertzel quote with source, dropped in at final assembly. Everything else is final text; the A/B numbers in §6 are the real Phase-4 run.
-
 ---
 
 ## Abstract
