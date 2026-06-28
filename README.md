@@ -4,13 +4,14 @@
 
 **BGI Sprint 1 · Track 1 (extends OmegaClaw) · MIT**
 
+> *"the architecture forces honesty defects to be observable"*
+> — Ben Goertzel, [*Wild Times in the AGI Lab*](https://bengoertzel.substack.com/p/wild-times-in-the-agi-lab) (Substack, 2026) — the article that inspired this project's forced cross-context collision.
+
 > 📄 **[Read the full research note →](docs/research-note.md)** — the complete study: method, the maturity-trajectory result, the A/B benchmark, the pattern math, and the ethics. *This README is the tour; the [research note](docs/research-note.md) is the whole thing.*
 
 Porfiry Petrovich never arrests Raskolnikov. He sets the man's grand theory beside the man's actual deeds and waits for him to arrive at himself. The Honest Mirror does the same, in atoms: it surfaces a person's sharpest value-tension as a **hypothesis with a receipt**, and — by construction — never as a verdict. Call it **Porfiry-as-a-Service**.
 
 > *Theme fit ("agents that hold the thread"): the agent keeps a durable, inspectable model of who you are and reasons over it under uncertainty — instead of re-hallucinating a personality every turn.*
-
-<!-- ⟦OPTIONAL⟧ verified Goertzel epigraph (verbatim + source) drops here before final push -->
 
 > **New to the novel?** *Crime and Punishment* — [free at Project Gutenberg](https://www.gutenberg.org/ebooks/2554). Raskolnikov, a destitute ex-student, murders a pawnbroker to prove a theory: that *extraordinary* people hold **the right** (*право имею*, "I have the right") to step over ordinary morality for a higher end. The rest of the book is his own conscience refuting the theory. Porfiry is the magistrate who never arrests him — he just sets the theory beside the deeds and waits.
 

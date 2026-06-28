@@ -4,6 +4,9 @@
 
 **BGI Sprint 1 · Track 1 (extends OmegaClaw) · 26–28 June 2026 · MIT**
 
+> *"…it makes self-opacity structurally expensive."*
+> — Ben Goertzel, [*Open Source Your Self*](https://bengoertzel.substack.com/p/open-sourcing-your-self) (Substack, 2026)
+
 ---
 
 ## Abstract
@@ -44,8 +47,6 @@ gate        → ACT / HYPOTHESIZE / IGNORE
 ```
 
 A human — or another agent — can check it premise by premise, and refute it; refutation re-enters as a new premise and revises the model (`GROUND`). This is the exact inverse of confidence laundering from §1: where the bare LLM hands you a fluent, unstable, trail-less verdict, Porfiry's Mirror hands you a stable hypothesis you can audit and overturn. The judgment is honest not because the model is well-behaved, but because the architecture will not let it be otherwise.
-
-<!-- ⟦OPTIONAL⟧ verified Goertzel pull-quote (ethics-in-substrate / self-opacity expensive / paraconsistency) + source — drop in before final push if time allows -->
 
 ---
 
@@ -147,7 +148,7 @@ The contested truth-value sits near 0.5 with *rising* confidence — the signatu
 
 The skill does not live as a one-shot function; it lives inside OmegaClaw's continuous loop as one capacity among many. You feed it text — a diary, a project description, answers to an assessment, with consent a transcript — and it extracts atoms, accumulates them in durable memory, and **stays silent** (`IGNORE`) until a pattern crosses threshold. Then it surfaces *one* finding, through the relevant lens, as feedback, with a receipt. Triggers are reactive (a confidence threshold crossed — negative *or* positive), scheduled (a weekly value-review through a lens the router picked for the current pattern), or on demand.
 
-In practice: **upload a body of text → get a judgment across the six patterns → on a pattern trigger, receive feedback through the matching lens** (contradiction → Immunity to Change; maturity → Action Logic; potential → strengths). Each piece of feedback is "pattern → indication → instrument," not "the model decided you should meditate."
+In practice: **upload a body of text → get a judgment across the six patterns → on a pattern trigger, receive feedback through the matching lens** (contradiction → Immunity to Change; maturity → Action Logic; and, by design, potential → strengths). Each piece of feedback is "pattern → indication → instrument," not "the model decided you should meditate."
 
 **A few destinations for the same engine.** Each is the identical pipeline under a different lens configuration — a different *question*, not a different program (input → what happens → output):
 
@@ -186,7 +187,7 @@ This is the constructive answer to confidence laundering: an architecture whose 
 
 **Stated plainly.** Extraction is the weak link — the LLM swaps subjects and over-estimates confidence; we cap input confidence at 0.5 and hand-verify the benchmark atoms, and auto-extraction quality is future work. The AtomSpace is ephemeral per call; durability lives in the vector store and provenance in a side-map (the NAL term must match for revision to fire). This sprint wires two patterns (contradiction and trajectory), documents four as design, and uses one lens for the headline; one character, hand-verified atoms. The result demonstrates the *mechanism*, not yet a scaled system.
 
-**Continuation — both paths held equally.** The work can grow inside the SNET / BGI ecosystem as a coherence-reasoning contribution, or as an independent project; we weight neither over the other here. Next axes: auto-extraction quality; a richer inspection-view (the held atoms, editable, with a feedback loop); the strengths and trajectory heads fully wired; an interpretable *discernment-space* that makes profiles comparable (person ↔ project gap-vectors for matching a leader to a civic challenge); and lens co-development with domain mentors. The pipeline is modular and the benchmark is one file — continuation is cheap.
+**Continuation — both paths held equally.** The work can grow inside the SNET / BGI ecosystem as a coherence-reasoning contribution, or as an independent project; we weight neither over the other here. Next axes: auto-extraction quality; a richer inspection-view (the held atoms, editable, with a feedback loop); the remaining pattern heads (strengths, coherence, readiness) fully wired; an interpretable *discernment-space* that makes profiles comparable (person ↔ project gap-vectors for matching a leader to a civic challenge); and lens co-development with domain mentors. The pipeline is modular and the benchmark is one file — continuation is cheap.
 
 **Who should review it next:** OmegaClaw maintainers (a reusable pattern for real NAL reasoning + side-map provenance from a skill) and BGI / coherence researchers (a runnable value-coherence benchmark with a trajectory result).
 
