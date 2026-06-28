@@ -1,0 +1,22 @@
+# secrets / runtime — never commit
+.env
+*.key
+.openrouter_key
+.omniroute_key
+.omniroute_url
+.tg_auth.json
+memory/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+
+# temp
+*.tmp
+*.log
