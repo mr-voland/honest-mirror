@@ -7,7 +7,7 @@
 > *"the architecture forces honesty defects to be observable"*
 > — Ben Goertzel, [*Wild Times in the AGI Lab*](https://bengoertzel.substack.com/p/wild-times-in-the-agi-lab) (Substack, 2026) — the article that inspired this project's forced cross-context collision.
 
-> 📄 **[Read the full research note →](docs/research-note.md)** — the complete study: method, the maturity-trajectory result, the A/B benchmark, the pattern math, and the ethics. *This README is the tour; the [research note](docs/research-note.md) is the whole thing.*
+> 📄 **[Read the full research note →](docs/research-note.md)** — the complete study: method, the maturity-trajectory result, the A/B benchmark, the pattern math, and the ethics.
 >
 > 🎞️ **[View the pitch deck →](docs/honest-mirror-deck.html)** — the visual walkthrough (open in a browser).
 
