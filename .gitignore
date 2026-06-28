@@ -20,3 +20,16 @@ __pycache__/
 # temp
 *.tmp
 *.log
+
+# internal working files — NOT for the public submission repo
+/CLAUDE.md
+/docs/CONTEXT.md
+/docs/LOG.md
+/docs/LESSONS.md
+/docs/CHANGELOG.md
+/docs/ARCHITECTURE.md
+/docs/jiva-prompt.txt
+/docs/jiva-memory-seeds.md
+/tasks/
+/book/
+/data/mayor_source.md
