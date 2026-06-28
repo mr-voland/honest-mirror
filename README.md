@@ -8,6 +8,8 @@
 > — Ben Goertzel, [*Wild Times in the AGI Lab*](https://bengoertzel.substack.com/p/wild-times-in-the-agi-lab) (Substack, 2026) — the article that inspired this project's forced cross-context collision.
 
 > 📄 **[Read the full research note →](docs/research-note.md)** — the complete study: method, the maturity-trajectory result, the A/B benchmark, the pattern math, and the ethics. *This README is the tour; the [research note](docs/research-note.md) is the whole thing.*
+>
+> 🎞️ **[View the pitch deck →](docs/honest-mirror-deck.html)** — the visual walkthrough (open in a browser).
 
 Porfiry Petrovich never arrests Raskolnikov. He sets the man's grand theory beside the man's actual deeds and waits for him to arrive at himself. The Honest Mirror does the same, in atoms: it surfaces a person's sharpest value-tension as a **hypothesis with a receipt**, and — by construction — never as a verdict. Call it **Porfiry-as-a-Service**.
 
